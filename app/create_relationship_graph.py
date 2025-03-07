@@ -4,13 +4,12 @@ import numpy as np
 
 from datetime import datetime
 from datetime import timedelta
-def round_time(dt: datetime, unit=timedelta(seconds=1)):
-    seconds = (dt - datetime.min).total_seconds()  #todo fix types here
-    unit_seconds = unit.total_seconds()
-    half_over = seconds + unit_seconds / 2
-    rounded_seconds = half_over - half_over % unit_seconds
-    return datetime.min + timedelta(seconds=rounded_seconds)
 
+import pandas as pd
+
+
+def round_time(dates: datetime, unit='H'):
+    return dates.floor(unit)
 
 
 def create_graph(data: TrajectoryCollection):
@@ -18,12 +17,22 @@ def create_graph(data: TrajectoryCollection):
 
     trajectory_a = data.trajectories[0].df
     trajectory_b = data.trajectories[1].df
-    t1 = trajectory_b.index.values[0]
-    t_rounded = round_time(t1, unit=timedelta(hours=5))
+
     # 1: interpolate and resample
-    # round (based on param)
+    # round (based on param) 'T', 'M' or 'H'
+    times_a_rounded_time = round_time(trajectory_a.index, 'H')
+    times_b_rounded_time = round_time(trajectory_b.index, 'H')
+
+    trajectory_a.index = times_a_rounded_time
+    trajectory_b.index = times_b_rounded_time
+
     # remove extras (or avg) - there might be multiple identical values after rounding
+    times_a_unique = trajectory_a[~trajectory_a.index.duplicated(keep='first')]
+    times_b_unique = trajectory_b[~trajectory_b.index.duplicated(keep='first')]
+
     # interpolate values / or fill with none depending on gap size if the data is too sparse
+
+
     # should return evenly sampled geoseries
 
     # 2: match series
