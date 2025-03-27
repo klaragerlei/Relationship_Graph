@@ -39,19 +39,19 @@ def create_graph(data: TrajectoryCollection):
     times_a_unique = trajectory_a[~trajectory_a.index.duplicated(keep='first')]
     times_b_unique = trajectory_b[~trajectory_b.index.duplicated(keep='first')]
 
-    # interpolate values / or fill with none depending on gap size if the data is too sparse
+    # interpolate values / or fill with none (depending on gap size if the data is too sparse?)
     times_a_interpolated = interpolate_points(times_a_unique)
     times_b_interpolated = interpolate_points(times_b_unique)
 
-
-    # should return evenly sampled geoseries
-
     # 2: match series
+    a_aligned, b_aligned = times_a_interpolated.align(times_b_interpolated, join="outer", axis=0)
     # run (1) for both trajectories that are compared and cut off beginnings and ends, so they fully match
     # 3: calculate distance
+    a_gdf = gpd.GeoDataFrame(a_aligned, geometry=gpd.points_from_xy(a_aligned['x'], a_aligned['y'])).set_crs('EPSG:4326').to_crs('EPSG:3857')
+    b_gdf = gpd.GeoDataFrame(b_aligned, geometry=gpd.points_from_xy(b_aligned['x'], b_aligned['y'])).set_crs('EPSG:4326').to_crs('EPSG:3857')
 
-    distance = trajectory_a.distance(trajectory_b)
-
+    distance = a_gdf.distance(b_gdf)  # meters
+    print('')
     # parameterize and define 'close' - for how long and what distance should they be to be considered interacting?
     # find distance segments that meet criteria
     # get number of times the animals met and store
