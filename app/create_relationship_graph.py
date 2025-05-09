@@ -64,7 +64,7 @@ def count_number_of_samples_when_close(data, distances, meeting_distance=1000):
     for pair in itertools.combinations(range(number_of_animals), 2):
         print(pair)
         distance = distances[pair]  # data frame with distances
-        samples_when_close[pair] = (distance < meeting_distance).sum()
+        samples_when_close[(data.trajectories[pair[0]].id, data.trajectories[pair[1]].id)] = (distance < meeting_distance).sum()
     return samples_when_close
 
 
@@ -77,7 +77,7 @@ def create_graph(data: TrajectoryCollection):
     relationship_graph = nx.Graph()
     for key in samples_when_close:
         # add edges
-        relationship_graph.add_edge(str(key[0]), str(key[1]), weight=samples_when_close[key])  # todo get animal ID here instead
+        relationship_graph.add_edge(str(key[0]), str(key[1]), weight=samples_when_close[key])
     pos = nx.spring_layout(relationship_graph, seed=111)
 
     # nodes
