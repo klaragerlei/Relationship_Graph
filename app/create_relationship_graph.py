@@ -8,23 +8,46 @@ import networkx as nx
 import pandas as pd
 
 
-def round_time(dates: datetime, unit='H'):
+def round_time(dates: pd.Series, unit='H'):
+    """
+    Round series of dates
+    """
     return dates.floor(unit)
 
 
-def interpolate_points(trajectory: gpd.GeoDataFrame, unit='h'):
+def interpolate_points(trajectory: gpd.GeoDataFrame, time_unit='h') -> pd.DataFrame:
+    """
+    todo: should there be an option for smaller gaps to be interpolated?
+    Creates data frame with time and x and y coordinates and resamples time series data
+
+    Parameters:
+        trajectory (gpd.GeoDataFrame): trajectory data
+        time_unit (str): unit of time for resampling
+    Returns:
+        trajectory_df (pd.DataFrame): resampled trajectory
+    """
     # make new df with time, x and y coord
     trajectory_df = pd.DataFrame({'x': trajectory.geometry.x, 'y': trajectory.geometry.y}, index=trajectory.index)
-    # use pandas interpolate
-    trajectory_df = trajectory_df.resample(unit).mean()   # this has nans in gaps for now
+    # resample
+    trajectory_df = trajectory_df.resample(time_unit).mean()   # this has nans in gaps for now
     return trajectory_df
 
 
-def calculate_distance_between_trajectories(trajectory_a, trajectory_b):
-    # 1: interpolate and resample
-    # round (based on param) 'T', 'M' or 'H'
-    times_a_rounded_time = round_time(trajectory_a.index, 'h')
-    times_b_rounded_time = round_time(trajectory_b.index, 'h')
+def calculate_distance_between_trajectories(trajectory_a: pd.DataFrame, trajectory_b: pd.DataFrame, time_step='h') -> pd.Series:
+    """
+    Calculates the distance between two trajectories after aligning them
+
+    Parameters:
+        trajectory_a (pd.DataFrame): data frame with trajectory
+        trajectory_b (pd.DataFrame): data frame with trajectory
+        time_step (str): unit of time used for interpolation ('h' by default)
+    Returns:
+        distance (pd.Series): distance between trajectory a and b at each time point
+    """
+    # interpolate and resample
+    # round (based on param)
+    times_a_rounded_time = round_time(trajectory_a.index, time_step)
+    times_b_rounded_time = round_time(trajectory_b.index, time_step)
 
     trajectory_a.index = times_a_rounded_time
     trajectory_b.index = times_b_rounded_time
@@ -33,9 +56,9 @@ def calculate_distance_between_trajectories(trajectory_a, trajectory_b):
     times_a_unique = trajectory_a[~trajectory_a.index.duplicated(keep='first')]
     times_b_unique = trajectory_b[~trajectory_b.index.duplicated(keep='first')]
 
-    # interpolate values / or fill with none (depending on gap size if the data is too sparse?)
-    times_a_interpolated = interpolate_points(times_a_unique)
-    times_b_interpolated = interpolate_points(times_b_unique)
+    # interpolate values / or fill with none
+    times_a_interpolated = interpolate_points(times_a_unique, time_unit=time_step)
+    times_b_interpolated = interpolate_points(times_b_unique, time_unit=time_step)
 
     # 2: match series
     a_aligned, b_aligned = times_a_interpolated.align(times_b_interpolated, join="outer", axis=0)
@@ -49,7 +72,16 @@ def calculate_distance_between_trajectories(trajectory_a, trajectory_b):
     return distance
 
 
-def calculate_distances_between_pairs_of_trajectories(data):
+def calculate_distances_between_pairs_of_trajectories(data: TrajectoryCollection) -> dict:
+    """
+    Calculates the distance between pairs of trajectories for all trajectories in the data.
+
+    Parameters:
+        data (TrajectoryCollection) : trajectories
+    Returns:
+        distances (dict) : dictionary with a pd.Series of distances for each pair in meters
+
+    """
     number_of_animals = len(data.trajectories)
     distances = {}
     for pair in itertools.combinations(range(number_of_animals), 2):
@@ -58,7 +90,16 @@ def calculate_distances_between_pairs_of_trajectories(data):
     return distances
 
 
-def count_number_of_samples_when_close(data, distances, meeting_distance=1000):
+def count_number_of_samples_when_close(data: TrajectoryCollection, distances: dict, meeting_distance=1000) -> dict:
+    """
+    Count the number of times a pair of animals got close to each other
+    Parameters:
+        data (TrajectoryCollection): animal trajectories
+        distances (dict): dictionary with series of pairwise distances
+        meeting_distance (int): threshold for considering two animals to be close (meters)
+    Returns:
+        samples_when_close (dict): dictionary of number of samples when pairs of animals were close to each other
+    """
     number_of_animals = len(data.trajectories)
     samples_when_close = {}
     for pair in itertools.combinations(range(number_of_animals), 2):
@@ -69,10 +110,9 @@ def count_number_of_samples_when_close(data, distances, meeting_distance=1000):
 
 
 def create_graph(data: TrajectoryCollection):
-    logging.info("Create relationship graphs")
+    logging.info("Create relationship graph")
     distances = calculate_distances_between_pairs_of_trajectories(data)
     samples_when_close = count_number_of_samples_when_close(data, distances)
-    print(samples_when_close)
 
     relationship_graph = nx.Graph()
     for key in samples_when_close:
@@ -86,11 +126,11 @@ def create_graph(data: TrajectoryCollection):
     # edges
     nx.draw_networkx_edges(relationship_graph, pos, edgelist=relationship_graph.edges(data=True), width=6)
     nx.draw_networkx_edges(
-        relationship_graph, pos, edgelist=relationship_graph.edges(data=True), width=6, alpha=0.5, edge_color="b", style="dashed"
+        relationship_graph, pos, edgelist=relationship_graph.edges(data=True), width=4, alpha=0.3, edge_color='skyblue'
     )
 
     # node labels
-    nx.draw_networkx_labels(relationship_graph, pos, font_size=20, font_family="sans-serif")  # todo make it look nicer
+    nx.draw_networkx_labels(relationship_graph, pos, font_size=12, font_family="sans-serif")  # todo make it look nicer
     # edge weight labels
     edge_labels = nx.get_edge_attributes(relationship_graph, "weight")
     nx.draw_networkx_edge_labels(relationship_graph, pos, edge_labels)
@@ -101,6 +141,7 @@ def create_graph(data: TrajectoryCollection):
     plt.tight_layout()
     plt.savefig('graph.png')  # todo save it properly
     print('')
+
 
     # parameterize and define 'close' - for how long and what distance should they be to be considered interacting?
     # find distance segments that meet criteria
