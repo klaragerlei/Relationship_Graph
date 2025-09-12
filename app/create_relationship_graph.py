@@ -29,7 +29,7 @@ def interpolate_points(trajectory: gpd.GeoDataFrame, time_unit='h') -> pd.DataFr
     # make new df with time, x and y coord
     trajectory_df = pd.DataFrame({'x': trajectory.geometry.x, 'y': trajectory.geometry.y}, index=trajectory.index)
     # resample
-    trajectory_df = trajectory_df.resample(time_unit).mean()   # this has nans in gaps for now
+    trajectory_df = trajectory_df.resample(time_unit).mean()   # this has nans in gaps
     return trajectory_df
 
 
