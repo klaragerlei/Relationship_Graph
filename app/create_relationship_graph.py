@@ -90,7 +90,7 @@ def calculate_distances_between_pairs_of_trajectories(data: TrajectoryCollection
     return distances
 
 
-def count_number_of_samples_when_close(data: TrajectoryCollection, distances: dict, meeting_distance=1000) -> dict:
+def count_number_of_samples_when_close(data: TrajectoryCollection, distances: dict, meeting_distance=100) -> dict:
     """
     Count the number of times a pair of animals got close to each other
     Parameters:
@@ -106,6 +106,7 @@ def count_number_of_samples_when_close(data: TrajectoryCollection, distances: di
         print(pair)
         distance = distances[pair]  # data frame with distances
         samples_when_close[(data.trajectories[pair[0]].id, data.trajectories[pair[1]].id)] = (distance < meeting_distance).sum()
+        print((distance < meeting_distance).sum())
     return samples_when_close
 
 
@@ -121,19 +122,20 @@ def create_graph(data: TrajectoryCollection):
     pos = nx.spring_layout(relationship_graph, seed=111)
 
     # nodes
-    nx.draw_networkx_nodes(relationship_graph, pos, node_size=700)
+    nx.draw_networkx_nodes(relationship_graph, pos)
 
     # edges
-    nx.draw_networkx_edges(relationship_graph, pos, edgelist=relationship_graph.edges(data=True), width=6)
-    nx.draw_networkx_edges(
-        relationship_graph, pos, edgelist=relationship_graph.edges(data=True), width=4, alpha=0.3, edge_color='skyblue'
-    )
+    widths = nx.get_edge_attributes(relationship_graph, 'weight')
+
+    #nx.draw_networkx_edges(
+    #    relationship_graph, pos, edgelist=widths.keys(), width=list(widths.values()), alpha=0.3, edge_color='skyblue'
+    #)
 
     # node labels
-    nx.draw_networkx_labels(relationship_graph, pos, font_size=12, font_family="sans-serif")  # todo make it look nicer
+    #nx.draw_networkx_labels(relationship_graph, pos, font_size=12, font_family="sans-serif")  # todo make it look nicer
     # edge weight labels
     edge_labels = nx.get_edge_attributes(relationship_graph, "weight")
-    nx.draw_networkx_edge_labels(relationship_graph, pos, edge_labels)
+    #nx.draw_networkx_edge_labels(relationship_graph, pos, edge_labels)
 
     ax = plt.gca()
     ax.margins(0.08)
