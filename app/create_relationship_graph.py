@@ -120,7 +120,7 @@ def create_graph(
         figsize: tuple = (14, 10),
         show_edge_labels: bool = False,
         edge_label_threshold_percentile: float = 75,
-        label_strategy: str = 'minimal'  # 'offset', 'minimal', or 'none'
+        label_strategy: str = 'none'  # 'offset', 'minimal', or 'none'
 ):
     """
     Create a relationship graph from trajectory data.

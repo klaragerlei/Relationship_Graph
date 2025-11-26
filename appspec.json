@@ -2,9 +2,9 @@
   "version": "1.2",
   "settings": [
     {
-      "id": "app-name",
-      "name": "App Name",
-      "description": "You can personalize the app name.",
+      "id": "relationship-graph",
+      "name": "Relationship Graph",
+      "description": "App that plots a graph showing relationships between animals.",
       "default": "Python SDK",
       "type": "STRING"
     },
