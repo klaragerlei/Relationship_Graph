@@ -115,6 +115,7 @@ def count_number_of_samples_when_close(data: TrajectoryCollection, distances: di
 
 def create_graph(
         data: TrajectoryCollection,
+        moveapps_io: object,
         edge_threshold_percentile: float = 40,
         node_spacing: float = 2.0,
         min_edge_width: float = 0.5,
@@ -331,7 +332,8 @@ def create_graph(
     ax.set_title(title, fontsize=14, fontweight='bold')
     ax.axis('off')
     plt.tight_layout()
-    plt.savefig('graph.png', bbox_inches='tight', dpi=300)
+    # plt.savefig('graph.png', bbox_inches='tight', dpi=300)
+    plt.savefig(moveapps_io.create_artifacts_file('relationship_graph.png'))
     return relationship_graph, pos
 
 
