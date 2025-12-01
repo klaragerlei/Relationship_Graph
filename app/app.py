@@ -21,7 +21,7 @@ class App(object):
         logging.info(f'Welcome to the {config}')
 
         """Your app code goes here"""
-        create_graph(data)
+        create_graph(data, self.moveapps_io)
 
         # showcase injecting App settings (parameter `year`)
         data_gdf = get_GDF(data)  # translate the TrajectoryCollection to a GeoDataFrame
@@ -34,15 +34,6 @@ class App(object):
             result = data_gdf[data_gdf.index.year == config["year"]]
         else:
             result = None
-
-        # showcase creating an artifact
-        if result is not None:
-            result.plot(column=data.get_traj_id_col(), alpha=0.5)
-            plot_file = self.moveapps_io.create_artifacts_file("plot.png")
-            plt.savefig(plot_file)
-            logging.info(f'saved plot to {plot_file}')
-        else:
-            logging.warning("Nothing to plot")
 
         # showcase accessing auxiliary files
         auxiliary_file_a = MoveAppsIo.get_auxiliary_file_path("auxiliary-file-a")
