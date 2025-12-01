@@ -4,6 +4,8 @@ import geopandas as gpd
 import itertools
 from datetime import datetime
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
 import networkx as nx
 import pandas as pd
 import numpy as np
@@ -29,11 +31,12 @@ def interpolate_points(trajectory: gpd.GeoDataFrame, time_unit='h') -> pd.DataFr
     # make new df with time, x and y coord
     trajectory_df = pd.DataFrame({'x': trajectory.geometry.x, 'y': trajectory.geometry.y}, index=trajectory.index)
     # resample
-    trajectory_df = trajectory_df.resample(time_unit).mean()   # this has nans in gaps
+    trajectory_df = trajectory_df.resample(time_unit).mean()  # this has nans in gaps
     return trajectory_df
 
 
-def calculate_distance_between_trajectories(trajectory_a: pd.DataFrame, trajectory_b: pd.DataFrame, time_step='h') -> pd.Series:
+def calculate_distance_between_trajectories(trajectory_a: pd.DataFrame, trajectory_b: pd.DataFrame,
+                                            time_step='h') -> pd.Series:
     """
     Calculates the distance between two trajectories after aligning them
 
@@ -104,7 +107,8 @@ def count_number_of_samples_when_close(data: TrajectoryCollection, distances: di
     for pair in itertools.combinations(range(number_of_animals), 2):
         print(pair)
         distance = distances[pair]  # data frame with distances
-        samples_when_close[(data.trajectories[pair[0]].id, data.trajectories[pair[1]].id)] = (distance < meeting_distance).sum()
+        samples_when_close[(data.trajectories[pair[0]].id, data.trajectories[pair[1]].id)] = (
+                    distance < meeting_distance).sum()
         print((distance < meeting_distance).sum())
     return samples_when_close
 
@@ -120,7 +124,8 @@ def create_graph(
         figsize: tuple = (14, 10),
         show_edge_labels: bool = False,
         edge_label_threshold_percentile: float = 75,
-        label_strategy: str = 'none'  # 'offset', 'minimal', or 'none'
+        label_strategy: str = 'none',  # 'offset', 'minimal', or 'none'
+        color_by: str = 'group_id'  # attribute to color nodes by
 ):
     """
     Create a relationship graph from trajectory data.
@@ -150,6 +155,8 @@ def create_graph(
         - 'offset': Offset labels from nodes with lines
         - 'minimal': Only show labels for peripheral nodes (reduces clutter)
         - 'none': Don't show labels at all
+    color_by : str
+        Attribute name to color nodes by (e.g., 'group_id'). Set to None for grey nodes.
     """
     logging.info("Create relationship graph")
     distances = calculate_distances_between_pairs_of_trajectories(data)
@@ -232,6 +239,28 @@ def create_graph(
         if w >= edge_threshold
     ]
 
+    # Get node colors based on group_id attribute
+    node_colors = 'lightgrey'
+    color_map = {}
+    if color_by:
+        node_to_group = {}
+        for traj in data.trajectories:
+            traj_id = str(traj.id)
+            if traj_id in graph_for_layout.nodes() and color_by in traj.df.columns:
+                # Get unique group_id value for this trajectory
+                group_id = traj.df[color_by].unique()[0]
+                node_to_group[traj_id] = group_id
+
+        if node_to_group:
+            # Get all unique groups and assign colors
+            unique_groups = sorted(set(node_to_group.values()))
+            cmap = cm.get_cmap('tab10' if len(unique_groups) <= 10 else 'tab20')
+            color_map = {group: mcolors.rgb2hex(cmap(i / max(len(unique_groups) - 1, 1)))
+                         for i, group in enumerate(unique_groups)}
+            node_colors = [color_map.get(node_to_group.get(node), 'lightgrey')
+                           for node in graph_for_layout.nodes()]
+            logging.info(f"Colored {len(node_colors)} nodes by '{color_by}' with {len(unique_groups)} unique groups")
+
     # Create figure
     fig, ax = plt.subplots(figsize=figsize)
 
@@ -250,10 +279,10 @@ def create_graph(
     nx.draw_networkx_nodes(
         graph_for_layout,
         pos,
-        node_color='lightcoral',
+        node_color=node_colors,
         node_size=node_size,
         alpha=0.9,
-        edgecolors='darkred',
+        edgecolors='darkgrey',
         linewidths=2,
         ax=ax
     )
@@ -269,6 +298,20 @@ def create_graph(
         logging.warning(f"Unknown label strategy: {label_strategy}, defaulting to 'offset'")
         _draw_labels_offset(ax, graph_for_layout, pos, font_size, node_size)
 
+    # Add legend if we have colored groups
+    if color_by and color_map:
+        from matplotlib.patches import Patch
+        legend_elements = [Patch(facecolor=color, edgecolor='darkgrey', label=str(group))
+                           for group, color in sorted(color_map.items())]
+        ax.legend(handles=legend_elements,
+                  title=color_by.replace('_', ' ').title(),
+                  loc='upper left',
+                  bbox_to_anchor=(1.02, 1),
+                  frameon=True,
+                  fancybox=True,
+                  shadow=True,
+                  prop={'size': font_size})
+
     # Optionally add edge labels for strong connections
     if show_edge_labels:
         edge_labels = nx.get_edge_attributes(graph_for_layout, "weight")
@@ -282,10 +325,13 @@ def create_graph(
             ax=ax
         )
 
-    ax.set_title("Trajectory Relationship Graph (Filtered)", fontsize=14, fontweight='bold')
+    title = "Trajectory Relationship Graph (Filtered)"
+    if color_by and color_map:
+        title += f" - Colored by {color_by}"
+    ax.set_title(title, fontsize=14, fontweight='bold')
     ax.axis('off')
     plt.tight_layout()
-    plt.savefig('graph.png')  # todo save it properly
+    plt.savefig('graph.png', bbox_inches='tight', dpi=300)
     return relationship_graph, pos
 
 
@@ -331,7 +377,3 @@ def _draw_labels_minimal(ax, graph, pos, font_size):
                               facecolor='white',
                               edgecolor='none',
                               alpha=0.8))
-
-
-
-
