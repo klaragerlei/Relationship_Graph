@@ -332,8 +332,8 @@ def create_graph(
     ax.set_title(title, fontsize=14, fontweight='bold')
     ax.axis('off')
     plt.tight_layout()
-    # plt.savefig('graph.png', bbox_inches='tight', dpi=300)
-    plt.savefig(moveapps_io.create_artifacts_file('relationship_graph.png'))
+    plt.savefig('graph.png', bbox_inches='tight', dpi=300)
+    # plt.savefig(moveapps_io.create_artifacts_file('relationship_graph.png'))
     return relationship_graph, pos
 
 
