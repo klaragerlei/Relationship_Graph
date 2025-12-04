@@ -115,7 +115,6 @@ def count_number_of_samples_when_close(data: TrajectoryCollection, distances: di
 
 def create_graph(
         data: TrajectoryCollection,
-        moveapps_io: object,
         edge_threshold_percentile: float = 40,
         node_spacing: float = 2.0,
         min_edge_width: float = 0.5,

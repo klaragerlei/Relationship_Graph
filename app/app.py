@@ -21,7 +21,7 @@ class App(object):
         logging.info(f'Welcome to the {config}')
 
         """Your app code goes here"""
-        create_graph(data, self.moveapps_io)
+        create_graph(data)
         return data
 
 
