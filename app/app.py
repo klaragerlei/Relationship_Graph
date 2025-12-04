@@ -1,11 +1,11 @@
 from sdk.moveapps_spec import hook_impl
-from sdk.moveapps_io import MoveAppsIo
+#from sdk.moveapps_io import MoveAppsIo
 from movingpandas import TrajectoryCollection
 import logging
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 # showcase for importing functions from another .py file (in this case from "./app/getGeoDataFrame.py")
-from app.getGeoDataFrame import get_GDF
+#from app.getGeoDataFrame import get_GDF
 from app.create_relationship_graph import create_graph
 
 
