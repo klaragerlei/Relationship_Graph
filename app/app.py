@@ -21,7 +21,7 @@ class App(object):
         logging.info(f'Welcome to the {config}')
 
         """Your app code goes here"""
-        create_graph(data)
+        create_graph(data.copy())
 
         # showcase injecting App settings (parameter `year`)
         data_gdf = get_GDF(data)  # translate the TrajectoryCollection to a GeoDataFrame
@@ -59,4 +59,4 @@ class App(object):
             )
 
         # return the resulting data for next Apps in the Workflow
-        return result
+        return data
