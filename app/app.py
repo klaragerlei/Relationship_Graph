@@ -3,7 +3,6 @@ from sdk.moveapps_io import MoveAppsIo
 from movingpandas import TrajectoryCollection
 from typing import Optional
 import logging
-import matplotlib.pyplot as plt
 
 from app.getGeoDataFrame import get_GDF
 from app.create_relationship_graph import create_graph
@@ -18,18 +17,17 @@ class App(object):
     def execute(self, data: TrajectoryCollection, config: dict) -> Optional[TrajectoryCollection]:
         logging.info(f'Welcome to the {config}')
 
-        #create_graph(data.copy())
+        # Pass moveapps_io to create_graph
+        create_graph(data.copy(), self.moveapps_io)
 
-        # Original filtering logic
         data_gdf = get_GDF(data)
 
         logging.info(f'Subsetting data for {config["year"]}')
         if config["year"] in data_gdf.index.year:
             result = data_gdf[data_gdf.index.year == config["year"]]
         else:
-            return None  # Test expects None when year not present
+            return None
 
-        # Convert back to TrajectoryCollection
         result = TrajectoryCollection(
             result,
             traj_id_col=data.get_traj_id_col(),
