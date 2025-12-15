@@ -3,6 +3,8 @@ from movingpandas import TrajectoryCollection
 import geopandas as gpd
 import itertools
 from datetime import datetime
+import matplotlib
+matplotlib.use('Agg')  # Add this line - must be before pyplot import
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
