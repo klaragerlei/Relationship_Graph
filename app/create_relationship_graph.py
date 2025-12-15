@@ -2,8 +2,7 @@ import logging
 from movingpandas import TrajectoryCollection
 import geopandas as gpd
 import itertools
-import matplotlib
-matplotlib.use('Agg')
+from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
@@ -106,11 +105,11 @@ def count_number_of_samples_when_close(data: TrajectoryCollection, distances: di
     number_of_animals = len(data.trajectories)
     samples_when_close = {}
     for pair in itertools.combinations(range(number_of_animals), 2):
-        logging.debug(f"Processing pair: {pair}")  # Changed from print
+        print(pair)
         distance = distances[pair]  # data frame with distances
         samples_when_close[(data.trajectories[pair[0]].id, data.trajectories[pair[1]].id)] = (
                     distance < meeting_distance).sum()
-        logging.debug(f"Samples when close: {(distance < meeting_distance).sum()}")  # Changed from print
+        print((distance < meeting_distance).sum())
     return samples_when_close
 
 
@@ -125,8 +124,8 @@ def create_graph(
         figsize: tuple = (14, 10),
         show_edge_labels: bool = False,
         edge_label_threshold_percentile: float = 75,
-        label_strategy: str = 'none',
-        color_by: str = 'group_id'
+        label_strategy: str = 'none',  # 'offset', 'minimal', or 'none'
+        color_by: str = 'group_id'  # attribute to color nodes by
 ):
     """
     Create a relationship graph from trajectory data.
@@ -160,18 +159,8 @@ def create_graph(
         Attribute name to color nodes by (e.g., 'group_id'). Set to None for grey nodes.
     """
     logging.info("Create relationship graph")
-
-    # Check if we have enough trajectories
-    if len(data.trajectories) < 2:
-        logging.warning("Need at least 2 trajectories to create a relationship graph")
-        return
-
-    try:
-        distances = calculate_distances_between_pairs_of_trajectories(data)
-        samples_when_close = count_number_of_samples_when_close(data, distances)
-    except Exception as e:
-        logging.error(f"Error calculating distances: {e}")
-        return
+    distances = calculate_distances_between_pairs_of_trajectories(data)
+    samples_when_close = count_number_of_samples_when_close(data, distances)
 
     relationship_graph = nx.Graph()
     for key in samples_when_close:
@@ -188,7 +177,7 @@ def create_graph(
 
     if not weight_values:
         logging.warning("No edges found in graph")
-        return
+        return relationship_graph, {}
 
     # Calculate edge threshold
     edge_threshold = np.percentile(weight_values, edge_threshold_percentile)
@@ -257,15 +246,13 @@ def create_graph(
         node_to_group = {}
         for traj in data.trajectories:
             traj_id = str(traj.id)
-            # Check if column exists before trying to use it
             if traj_id in graph_for_layout.nodes() and color_by in traj.df.columns:
-                try:
-                    group_id = traj.df[color_by].unique()[0]
-                    node_to_group[traj_id] = group_id
-                except Exception as e:
-                    logging.warning(f"Could not get {color_by} for trajectory {traj_id}: {e}")
+                # Get unique group_id value for this trajectory
+                group_id = traj.df[color_by].unique()[0]
+                node_to_group[traj_id] = group_id
 
         if node_to_group:
+            # Get all unique groups and assign colors
             unique_groups = sorted(set(node_to_group.values()))
             cmap = cm.get_cmap('tab10' if len(unique_groups) <= 10 else 'tab20')
             color_map = {group: mcolors.rgb2hex(cmap(i / max(len(unique_groups) - 1, 1)))
@@ -273,8 +260,6 @@ def create_graph(
             node_colors = [color_map.get(node_to_group.get(node), 'lightgrey')
                            for node in graph_for_layout.nodes()]
             logging.info(f"Colored {len(node_colors)} nodes by '{color_by}' with {len(unique_groups)} unique groups")
-        else:
-            logging.info(f"Column '{color_by}' not found in data, using default grey colors")
 
     # Create figure
     fig, ax = plt.subplots(figsize=figsize)
@@ -346,8 +331,12 @@ def create_graph(
     ax.set_title(title, fontsize=14, fontweight='bold')
     ax.axis('off')
     plt.tight_layout()
-    plt.savefig('relationship_graph.png', bbox_inches='tight', dpi=300)
-    logging.info(f'Saved relationship graph')
+    plt.savefig('graph.png', bbox_inches='tight', dpi=300)
+    print('done')
+    # plt.savefig(moveapps_io.create_artifacts_file('relationship_graph.png'))
+    #return relationship_graph, pos
+
+
 def _draw_labels_offset(ax, graph, pos, font_size, node_size):
     """Draw labels offset from nodes with connecting lines"""
     # Calculate a radius based on node size
