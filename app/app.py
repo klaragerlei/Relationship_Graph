@@ -16,8 +16,12 @@ class App(object):
     def execute(self, data: TrajectoryCollection, config: dict) -> Optional[TrajectoryCollection]:
         logging.info(f'Welcome to the {config}')
 
-        # Create relationship graph
-        create_graph(data)
+        # Create relationship graph and save it
+        fig = create_graph(data)
+        if fig is not None:
+            fig.savefig(self.moveapps_io.create_artifacts_file('relationship_graph.png'),
+                        bbox_inches='tight', dpi=300)
+            logging.info('Saved relationship graph')
 
         # Filter data by year
         data_gdf = get_GDF(data)

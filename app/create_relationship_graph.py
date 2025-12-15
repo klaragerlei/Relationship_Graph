@@ -331,10 +331,7 @@ def create_graph(
     ax.set_title(title, fontsize=14, fontweight='bold')
     ax.axis('off')
     plt.tight_layout()
-    plt.savefig('graph.png', bbox_inches='tight', dpi=300)
-    print('done')
-    # plt.savefig(moveapps_io.create_artifacts_file('relationship_graph.png'))
-    #return relationship_graph, pos
+    return fig
 
 
 def _draw_labels_offset(ax, graph, pos, font_size, node_size):
