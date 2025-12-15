@@ -18,7 +18,7 @@ class App(object):
     def execute(self, data: TrajectoryCollection, config: dict) -> Optional[TrajectoryCollection]:
         logging.info(f'Welcome to the {config}')
 
-        create_graph(data.copy())
+        #create_graph(data.copy())
 
         # Original filtering logic
         data_gdf = get_GDF(data)
