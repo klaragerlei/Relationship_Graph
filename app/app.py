@@ -59,4 +59,4 @@ class App(object):
             )
 
         # return the resulting data for next Apps in the Workflow
-        return data
+        return data_gdf
