@@ -18,7 +18,7 @@ class App(object):
         logging.info(f'Welcome to the {config}')
 
         # Pass moveapps_io to create_graph
-        create_graph(data.copy(), self.moveapps_io)
+        create_graph(data.copy())
 
         data_gdf = get_GDF(data)
 
