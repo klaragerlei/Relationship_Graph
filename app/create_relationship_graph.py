@@ -2,6 +2,8 @@ import logging
 from movingpandas import TrajectoryCollection
 import geopandas as gpd
 import itertools
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
