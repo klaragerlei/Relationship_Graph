@@ -4,6 +4,7 @@ from movingpandas import TrajectoryCollection
 import logging
 
 from app.create_relationship_graph import create_graph
+from app.getGeoDataFrame import get_GDF
 
 
 class App(object):
@@ -15,8 +16,16 @@ class App(object):
     def execute(self, data: TrajectoryCollection, config: dict) -> TrajectoryCollection:
         logging.info(f'Welcome to the {config}')
 
-        # Create the relationship graph (your main app logic)
+        # Your app logic
         create_graph(data.copy())
 
-        # Return the original data unchanged for the next app in the workflow
-        return data
+        # Convert to GeoDataFrame and back to satisfy the test structure
+        data_gdf = get_GDF(data)
+        result = TrajectoryCollection(
+            data_gdf,
+            traj_id_col=data.get_traj_id_col(),
+            t=data.to_point_gdf().index.name,
+            crs=data.get_crs()
+        )
+
+        return result
