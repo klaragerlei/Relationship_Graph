@@ -1,77 +1,151 @@
-# Name of App *(Give your app a short and informative title. Please adhere to our convention of Title Case without hyphens (e.g. My New App))*
+# Trajectory Relationship Graph
 
 MoveApps
 
-Github repository: *github.com/yourAccount/Name-of-App* *(provide the link to the repository where the code of the App can be found)*
+Github repository: github.com/klaragerlei/Trajectory-Relationship-Graph
 
 ## Description
-*Enter here the short description of the App that might also be used when filling out the description during App submission to MoveApps. This text is directly presented to Users that look through the list of Apps when compiling Workflows.*
+Visualize animal relationships and group dynamics by analyzing proximity patterns between individuals. This app creates network graphs showing how much time animals spent close to each other, helping researchers understand social structures, group cohesion, and individual associations within tracked populations.
+
+<img width="4178" height="2970" alt="image" src="https://github.com/user-attachments/assets/3c2c247c-0b04-42bc-bd9d-35750024207f" />
 
 ## Documentation
-*Enter here a detailed description of your App. What is it intended to be used for. Which steps of analyses are performed and how. Please be explicit about any detail that is important for use and understanding of the App and its outcomes. You might also refer to the sections below.*
+The Trajectory Relationship Graph app analyzes movement data from multiple tracked animals to identify and visualize spatial-temporal proximity patterns. The app calculates pairwise distances between all individuals at regular time intervals and counts how many times pairs of animals were within a specified distance threshold of each other. These proximity counts are then used to create a network graph where:
 
-### Application scope
-#### Generality of App usability
-*State here if the App was developed for a specific species, taxon or taxonomic group, or to answer a specific question. How might it influence the scope and utility of the App. This information will help the user to understand why the App might be producing no or odd results.*
+- **Nodes** represent individual animals
+- **Edges** (connections) represent relationships between animals
+- **Edge thickness** reflects the strength of the relationship (more time spent close = thicker edge)
+- **Node colors** can represent different groups (e.g., family units, sex, age class)
 
-*Examples:*
+The app performs the following analysis steps:
 
-This App was developed using data of birds. 
+1. **Temporal Alignment**: Resamples all trajectories to a common time step to enable pairwise comparison
+2. **Distance Calculation**: Computes distances between all pairs of animals at each time point
+3. **Proximity Counting**: Counts how many times each pair was within the meeting distance threshold
+4. **Graph Construction**: Builds a network where edge weights represent proximity counts
+5. **Edge Filtering**: Removes weak relationships below a specified percentile threshold to highlight meaningful connections
+6. **Visualization**: Creates a spring-layout graph with customizable colors, sizes, and labels
 
-This App was developed using data of red deer. 
+The resulting visualization helps identify:
+- Core groups and subgroups within the population
+- Central vs. peripheral individuals
+- Temporal changes in associations (when filtered by year)
+- Potential social hierarchies or affiliations
 
-This App was developed for any taxonomic group. 
+## Application Scope
 
-This App was developed to identify kill sites, but can probably be used to identify any kind of location clusters like nests, dens or drinking holes.
+### Generality of App Usability
+This app was developed to work with any taxonomic group where social relationships and proximity patterns are of interest. It is particularly useful for:
+- Gregarious species (herding ungulates, social carnivores, flocking birds)
+- Species with fission-fusion dynamics
+- Studies of family groups, territorial behavior, or mating systems
 
-#### Required data properties
-*State here the required and/or optimal data properties for this App to perform properly.*
+The app works best when individuals have overlapping home ranges or spend time in shared areas. It may produce limited results for solitary or highly territorial species where proximity events are rare.
 
-*Examples:*
+### Required Data Properties
+- **Multiple individuals**: The app requires data from at least 2 tracked individuals to create relationships
+- **Temporal overlap**: Individuals should be tracked during overlapping time periods
+- **Regular fix rate**: Optimal results require consistent fix intervals (e.g., 1 location per hour)
+- **Sufficient spatial overlap**: Animals should have opportunities to be in proximity for meaningful relationship analysis
+- **Group ID attribute** (optional): For colored visualization by groups, a column indicating group membership is recommended
 
-This App is only applicable to data that reflect range resident behavior. 
+The app performs best with:
+- Fix rates between 15 minutes and 2 hours
+- Study periods of at least several weeks
+- Populations where social interactions occur regularly
 
-The data should have a fix rate of at least 1 location per 30 minutes. 
+## Input Type
+`MovingPandas.TrajectoryCollection`
 
-The App should work for any kind of (location) data.
+## Output Type
+`MovingPandas.TrajectoryCollection` (filtered by year if specified)
 
-### Input type
-*Indicate which type of input data the App requires.*
+## Artefacts
+- `relationship_graph.png`: Network graph visualization showing animal relationships. Nodes represent individuals, edges show proximity relationships, edge thickness indicates relationship strength, and node colors indicate group membership (if specified).
 
-*Example*: `MovingPandas.TrajectoryCollection`
+## Settings
 
-### Output type
-*Indicate which type of output data the App produces to be passed on to subsequent Apps.*
+- **Meeting Distance Threshold** (`meeting-distance`): Distance threshold in meters for considering two animals to be close to each other. When animals are within this distance, it counts as a proximity event. Default: `20.0` meters. Unit: `meters`
 
-*Example:* `MovingPandas.TrajectoryCollection`
+- **Time Unit for Resampling** (`time-unit`): Time unit for resampling trajectory data to align all individuals on a common temporal grid. Use pandas datetime frequency strings: 'min' (minutes), 'h' (hours), 'D' (days). Default: `h` (hourly)
 
-### Artefacts
-*If the App creates artefacts (e.g. csv, pdf, jpeg, shapefiles, etc), please list them here and describe each.*
+- **Group ID Column** (`group-id-column`): Name of the column in your data that contains group identifiers for coloring nodes (e.g., 'group_id', 'sex', 'family', 'species'). Nodes belonging to the same group will be colored identically. Set to empty string to disable group coloring. Default: `group_id`
 
-*Example:* `rest_overview.csv`: csv-file with Table of all rest site properties
+- **Edge Threshold Percentile** (`edge-threshold-percentile`): Percentile threshold (0-100) for filtering weak edges from the graph. Higher values show fewer, stronger relationships. For example, 40 means only edges above the 40th percentile of proximity counts are shown. Default: `40.0`
 
-### Settings 
-*Please list and define all settings/parameters that the App requires to be set by the App user, if necessary including their unit. Please first state the Setting name the user encounters in the Settings menu defined in the appspecs.json, and between brackets the argument used in the Python code to be able to identify it quickly in the code if needed.*
+- **Node Spacing** (`node-spacing`): Controls how spread out nodes are in the layout. Higher values create more spacing between nodes. Default: `2.0`
 
-*Example:* `Radius of resting site` (radius): Defined radius the animal has to stay in for a given duration of time for it to be considered resting site. Unit: `metres`.
+- **Minimum Edge Width** (`min-edge-width`): Minimum visual width for edges in the graph. Default: `0.5`
 
-### Changes in output data
-*Specify here how and if the App modifies the input data. Describe clearly what e.g. each additional column means.*
+- **Maximum Edge Width** (`max-edge-width`): Maximum visual width for edges in the graph. Default: `3.5`
 
-*Examples:*
+- **Node Size** (`node-size`): Size of node circles in the visualization. Default: `700`
 
-The App adds to the input data the columns `Max_dist` and `Avg_dist`. They contain the maximum distance to the provided focal location and the average distance to it over all locations. 
+- **Font Size** (`font-size`): Font size for node labels (if labels are shown). Default: `9`
 
-The App filterers the input data as selected by the user. 
+- **Figure Width** (`figure-width`): Width of output figure in inches. Default: `14`
 
-The output data is the outcome of the model applied to the input data. 
+- **Figure Height** (`figure-height`): Height of output figure in inches. Default: `10`
 
-The input data remains unchanged.
+- **Show Edge Labels** (`show-edge-labels`): Whether to display numeric labels showing proximity counts on edges. Default: `false`
 
-### Most common errors
-*Please describe shortly what most common errors of the App can be, how they occur and best ways of solving them.*
+- **Edge Label Threshold Percentile** (`edge-label-threshold-percentile`): Only show labels for edges above this percentile (if Show Edge Labels is enabled). Default: `75.0`
 
-### Null or error handling
-*Please indicate for each setting as well as the input data which behaviour the App is supposed to show in case of errors or NULL values/input. Please also add notes of possible errors that can happen if settings/parameters are improperly set and any other important information that you find the user should be aware of.*
+- **Label Strategy** (`label-strategy`): How to display node labels. Options: 'none' (no labels), 'offset' (labels offset from nodes with connecting lines), 'minimal' (only label peripheral nodes to reduce clutter). Default: `none`
 
-*Example:* **Setting `radius`:** If no radius AND no duration are given, the input data set is returned with a warning. If no radius is given (NULL), but a duration is defined then a default radius of 1000m = 1km is set. 
+- **Filter by Year** (`year`): Optional year to filter the trajectory data before analysis. Only data from this year will be included in the relationship graph. Default: `1960`
+
+## Changes in Output Data
+The input TrajectoryCollection is filtered to contain only data from the specified year (if a year is provided). All other trajectory properties remain unchanged. The primary output is the visualization artifact (`relationship_graph.png`), not modifications to the data itself.
+
+## Most Common Errors
+
+1. **No edges in graph**: This occurs when no animals were ever within the meeting distance threshold. Solutions:
+   - Increase the `meeting-distance` parameter
+   - Check that animals actually overlap spatially in your study
+   - Verify that temporal overlap exists between individuals
+
+2. **Graph too cluttered**: When many weak relationships create visual noise. Solutions:
+   - Increase `edge-threshold-percentile` to show only strong relationships
+   - Increase `node-spacing` to spread out the layout
+   - Use `label-strategy: minimal` or `none` to reduce label clutter
+
+3. **Missing year in data**: When filtering by year produces no data. Solution:
+   - Verify the year exists in your dataset
+   - Check that the timestamp format is correct
+
+4. **Group ID column not found**: When the specified `group-id-column` doesn't exist. Solution:
+   - Verify the column name matches exactly (case-sensitive)
+   - Set to empty string to disable group coloring
+
+## Null or Error Handling
+
+**Setting `meeting-distance`**: 
+- NULL or 0: Defaults to 20.0 meters
+- Negative values: Not allowed, will cause error
+- Very large values (>10km): May result in all animals being "close" constantly
+
+**Setting `time-unit`**: 
+- NULL or invalid: Defaults to 'h' (hours)
+- Must be valid pandas frequency string ('min', 'h', 'D', etc.)
+- Very fine time resolution (e.g., seconds) may cause memory issues with large datasets
+
+**Setting `group-id-column`**: 
+- NULL or empty string: All nodes colored light grey
+- Column doesn't exist: Logs warning and colors all nodes grey
+- Column contains NULL values: Animals with NULL group are colored grey
+
+**Setting `year`**: 
+- NULL: All data is used, no year filtering applied
+- Year not in dataset: Returns None and logs warning
+- Invalid year: May cause error
+
+**Input data**:
+- Less than 2 individuals: Cannot create relationships, returns warning
+- No temporal overlap: May result in empty graph with no edges
+- Missing coordinates: Rows with NULL coordinates are excluded from distance calculations
+- Irregular fix rates: App handles via resampling, but very irregular data may produce less reliable results
+
+**Edge filtering**:
+- If `edge-threshold-percentile` removes all edges: Graph shows isolated nodes with no connections
+- If only 1-2 individuals remain after filtering: Graph will be very simple with few/no edges
