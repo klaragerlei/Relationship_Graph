@@ -96,7 +96,7 @@ The app performs best with:
 - **Filter by Year** (`year`): Optional year to filter the trajectory data before analysis. Only data from this year will be included in the relationship graph. Default: `1960`
 
 ## Changes in Output Data
-The input TrajectoryCollection is filtered to contain only data from the specified year (if a year is provided). All other trajectory properties remain unchanged. The primary output is the visualization artifact (`relationship_graph.png`), not modifications to the data itself.
+The app creates a relationship graph visualization artifact first, using all available data. After the graph is created, the input TrajectoryCollection is filtered to contain only data from the specified year. The filtered data is then passed as output to subsequent apps in the workflow. The relationship graph itself is created from the complete dataset before year filtering occurs.
 
 ## Most Common Errors
 
@@ -110,9 +110,10 @@ The input TrajectoryCollection is filtered to contain only data from the specifi
    - Increase `node-spacing` to spread out the layout
    - Use `label-strategy: minimal` or `none` to reduce label clutter
 
-3. **Missing year in data**: When filtering by year produces no data. Solution:
-   - Verify the year exists in your dataset
+3. **No data output to next app**: When filtering by year produces no data for subsequent apps. Solution:
+   - Verify the specified year exists in your dataset
    - Check that the timestamp format is correct
+   - Note: The graph visualization will still be created from all data
 
 4. **Group ID column not found**: When the specified `group-id-column` doesn't exist. Solution:
    - Verify the column name matches exactly (case-sensitive)
@@ -136,9 +137,9 @@ The input TrajectoryCollection is filtered to contain only data from the specifi
 - Column contains NULL values: Animals with NULL group are colored grey
 
 **Setting `year`**: 
-- NULL: All data is used, no year filtering applied
-- Year not in dataset: Returns None and logs warning
-- Invalid year: May cause error
+- NULL: App returns None and workflow ends
+- Year not in dataset: App returns None and workflow ends, but graph is still created
+- The year filtering only affects the output data passed to subsequent apps, not the relationship graph creation
 
 **Input data**:
 - Less than 2 individuals: Cannot create relationships, returns warning
