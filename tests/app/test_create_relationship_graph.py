@@ -28,9 +28,10 @@ class TestRoundTime(unittest.TestCase):
         # execute
         actual = round_time(dates, 'h')
 
-        # verify
-        expected = pd.Series(pd.to_datetime(['2020-01-01 10:00:00', '2020-01-01 11:00:00']))
-        pd.testing.assert_series_equal(actual, expected)
+        # verify - use simple assertions instead of pd.testing
+        self.assertEqual(len(actual), 2)
+        self.assertEqual(actual.iloc[0], pd.Timestamp('2020-01-01 10:00:00'))
+        self.assertEqual(actual.iloc[1], pd.Timestamp('2020-01-01 11:00:00'))
 
 
 if __name__ == '__main__':
