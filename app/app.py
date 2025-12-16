@@ -59,7 +59,7 @@ class App(object):
                         bbox_inches='tight', dpi=300)
             logging.info('Saved relationship graph')
 
-        # Filter data by year - KEEP ORIGINAL LOGIC
+        # Filter data by year
         data_gdf = get_GDF(data)
         logging.info(f'Subsetting data for {config["year"]}')
 
