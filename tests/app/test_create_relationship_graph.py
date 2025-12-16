@@ -1,7 +1,9 @@
 import unittest
 import networkx as nx
 import numpy as np
+import pandas as pd
 from app.create_relationship_graph import (
+    count_close_encounters,
     build_graph_from_samples,
     get_edge_weights,
     calculate_edge_threshold,
@@ -10,6 +12,20 @@ from app.create_relationship_graph import (
     create_color_map,
     assign_node_colors
 )
+
+
+class TestCountCloseEncounters(unittest.TestCase):
+
+    def test_count_close_encounters(self):
+        # prepare
+        distances = pd.Series([10, 15, 25, 30, 5])
+        meeting_distance = 20
+
+        # execute
+        actual = count_close_encounters(distances, meeting_distance)
+
+        # verify
+        self.assertEqual(actual, 3)
 
 
 class TestBuildGraphFromSamples(unittest.TestCase):
