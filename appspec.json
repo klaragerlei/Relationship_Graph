@@ -83,7 +83,7 @@
       "name": "Show Edge Labels",
       "description": "Whether to show edge weight labels on the graph",
       "defaultValue": false,
-      "type": "BOOL"
+      "type": "CHECKBOX"
     },
     {
       "id": "edge-label-threshold-percentile",
