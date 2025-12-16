@@ -74,20 +74,25 @@ def calculate_distance_between_trajectories(trajectory_a: pd.DataFrame, trajecto
     return distance
 
 
-def calculate_distances_between_pairs_of_trajectories(data: TrajectoryCollection) -> dict:
+def calculate_distances_between_pairs_of_trajectories(data: TrajectoryCollection, time_step='h') -> dict:
     """
     Calculates the distance between pairs of trajectories for all trajectories in the data.
 
     Parameters:
-        data (TrajectoryCollection) : trajectories
+        data (TrajectoryCollection): trajectories
+        time_step (str): unit of time used for interpolation ('h' by default)
     Returns:
-        distances (dict) : dictionary with a pd.Series of distances for each pair in meters
+        distances (dict): dictionary with a pd.Series of distances for each pair in meters
 
     """
     number_of_animals = len(data.trajectories)
     distances = {}
     for pair in itertools.combinations(range(number_of_animals), 2):
-        distance = calculate_distance_between_trajectories(data.trajectories[pair[0]].df, data.trajectories[pair[1]].df)
+        distance = calculate_distance_between_trajectories(
+            data.trajectories[pair[0]].df,
+            data.trajectories[pair[1]].df,
+            time_step=time_step
+        )
         distances[pair] = distance
     return distances
 
@@ -98,7 +103,7 @@ def count_number_of_samples_when_close(data: TrajectoryCollection, distances: di
     Parameters:
         data (TrajectoryCollection): animal trajectories
         distances (dict): dictionary with series of pairwise distances
-        meeting_distance (int): threshold for considering two animals to be close (meters)
+        meeting_distance (float): threshold for considering two animals to be close (meters)
     Returns:
         samples_when_close (dict): dictionary of number of samples when pairs of animals were close to each other
     """
@@ -108,13 +113,15 @@ def count_number_of_samples_when_close(data: TrajectoryCollection, distances: di
         print(pair)
         distance = distances[pair]  # data frame with distances
         samples_when_close[(data.trajectories[pair[0]].id, data.trajectories[pair[1]].id)] = (
-                    distance < meeting_distance).sum()
+                distance < meeting_distance).sum()
         print((distance < meeting_distance).sum())
     return samples_when_close
 
 
 def create_graph(
         data: TrajectoryCollection,
+        meeting_distance: float = 20.0,
+        time_step: str = 'h',
         edge_threshold_percentile: float = 40,
         node_spacing: float = 2.0,
         min_edge_width: float = 0.5,
@@ -132,6 +139,14 @@ def create_graph(
 
     Parameters:
     -----------
+    data : TrajectoryCollection
+        The trajectory data to analyze
+    meeting_distance : float
+        Distance threshold in meters for considering two animals to be close (default: 20.0)
+    time_step : str
+        Time unit for resampling trajectory data (default: 'h' for hours).
+        Common values: 'min' (minutes), 'h' (hours), 'D' (days)
+        Uses pandas datetime frequency strings.
     edge_threshold_percentile : float
         Percentile threshold for filtering weak edges (0-100). Higher = fewer edges.
     node_spacing : float
@@ -158,9 +173,10 @@ def create_graph(
     color_by : str
         Attribute name to color nodes by (e.g., 'group_id'). Set to None for grey nodes.
     """
-    logging.info("Create relationship graph")
-    distances = calculate_distances_between_pairs_of_trajectories(data)
-    samples_when_close = count_number_of_samples_when_close(data, distances)
+    logging.info(f"Create relationship graph with meeting_distance={meeting_distance}m, time_step={time_step}")
+
+    distances = calculate_distances_between_pairs_of_trajectories(data, time_step=time_step)
+    samples_when_close = count_number_of_samples_when_close(data, distances, meeting_distance=meeting_distance)
 
     relationship_graph = nx.Graph()
     for key in samples_when_close:
