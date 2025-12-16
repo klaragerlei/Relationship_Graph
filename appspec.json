@@ -2,30 +2,109 @@
   "version": "1.2",
   "settings": [
     {
-      "id": "relationship-graph",
-      "name": "Relationship Graph",
-      "description": "App that plots a graph showing relationships between animals.",
-      "default": "Python SDK",
+      "id": "meeting-distance",
+      "name": "Meeting Distance Threshold",
+      "description": "Distance threshold in meters for considering two animals to be close to each other",
+      "defaultValue": 20.0,
+      "type": "DOUBLE"
+    },
+    {
+      "id": "time-unit",
+      "name": "Time Unit for Resampling",
+      "description": "Time unit for resampling trajectory data. Available values: 'min' (minutes), 'h' (hours), 'D' (days). Use pandas datetime frequency strings.",
+      "defaultValue": "h",
+      "type": "STRING"
+    },
+    {
+      "id": "group-id-column",
+      "name": "Group ID Column",
+      "description": "Name of the column to use for coloring nodes by group (e.g., 'group_id', 'species', 'sex'). Set to empty string to disable grouping.",
+      "defaultValue": "group_id",
+      "type": "STRING"
+    },
+    {
+      "id": "edge-threshold-percentile",
+      "name": "Edge Threshold Percentile",
+      "description": "Percentile threshold for filtering weak edges (0-100). Higher values result in fewer edges shown in the graph.",
+      "defaultValue": 40.0,
+      "type": "DOUBLE"
+    },
+    {
+      "id": "node-spacing",
+      "name": "Node Spacing",
+      "description": "Spacing between nodes in layout. Higher values result in more spread out nodes.",
+      "defaultValue": 2.0,
+      "type": "DOUBLE"
+    },
+    {
+      "id": "min-edge-width",
+      "name": "Minimum Edge Width",
+      "description": "Minimum width for edges in visualization",
+      "defaultValue": 0.5,
+      "type": "DOUBLE"
+    },
+    {
+      "id": "max-edge-width",
+      "name": "Maximum Edge Width",
+      "description": "Maximum width for edges in visualization",
+      "defaultValue": 3.5,
+      "type": "DOUBLE"
+    },
+    {
+      "id": "node-size",
+      "name": "Node Size",
+      "description": "Size of nodes in the graph",
+      "defaultValue": 700,
+      "type": "INTEGER"
+    },
+    {
+      "id": "font-size",
+      "name": "Font Size",
+      "description": "Font size for node labels",
+      "defaultValue": 9,
+      "type": "INTEGER"
+    },
+    {
+      "id": "figure-width",
+      "name": "Figure Width",
+      "description": "Width of the output figure in inches",
+      "defaultValue": 14,
+      "type": "INTEGER"
+    },
+    {
+      "id": "figure-height",
+      "name": "Figure Height",
+      "description": "Height of the output figure in inches",
+      "defaultValue": 10,
+      "type": "INTEGER"
+    },
+    {
+      "id": "show-edge-labels",
+      "name": "Show Edge Labels",
+      "description": "Whether to show edge weight labels on the graph",
+      "defaultValue": false,
+      "type": "BOOL"
+    },
+    {
+      "id": "edge-label-threshold-percentile",
+      "name": "Edge Label Threshold Percentile",
+      "description": "Only show labels for edges above this percentile (if show-edge-labels is true)",
+      "defaultValue": 75.0,
+      "type": "DOUBLE"
+    },
+    {
+      "id": "label-strategy",
+      "name": "Label Strategy",
+      "description": "Strategy for handling node labels: 'offset' (offset labels from nodes with lines), 'minimal' (only show labels for peripheral nodes), 'none' (don't show labels)",
+      "defaultValue": "none",
       "type": "STRING"
     },
     {
       "id": "year",
-      "name": "The year",
-      "description": "Enter the year for which you want to keep the data",
+      "name": "Filter by Year",
+      "description": "Year to filter the trajectory data (optional filtering step)",
       "defaultValue": 1960,
       "type": "INTEGER"
-    },
-    {
-      "id": "auxiliary-file-a",
-      "name": "Your message",
-      "description": "You can personalize the app by providing a file.",
-      "type": "USER_FILE"
-    }
-  ],
-  "providedAppFiles": [
-    {
-      "settingId": "auxiliary-file-a",
-      "from": "resources/auxiliary/user-files/provided-app-files/auxiliary-file-a/sample.txt"
     }
   ],
   "license": {
@@ -33,15 +112,18 @@
   },
   "language": "eng",
   "keywords": [
-    "example",
-    "template"
+    "trajectory",
+    "relationship",
+    "network",
+    "proximity",
+    "animal-movement"
   ],
   "people": [
     {
-      "firstName": "Charles",
+      "firstName": "Your",
       "middleInitials": null,
-      "lastName": "Darwin",
-      "email": "creator@example.com",
+      "lastName": "Name",
+      "email": "your.email@example.com",
       "roles": [
         "author",
         "creator"
@@ -60,9 +142,8 @@
   "references": [
     {
       "type": "IsDescribedBy",
-      "note": "Darwin, C. 1900. The creation. Journal XY. 1-2",
+      "note": "Add your reference here",
       "url": "https://anylink.xyz"
     }
   ]
 }
-
