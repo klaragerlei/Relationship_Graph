@@ -64,13 +64,15 @@ class App(object):
         logging.info(f'Subsetting data for {config["year"]}')
 
         if config["year"] in data_gdf.index.year:
-            result = data_gdf[data_gdf.index.year == config["year"]]
+            result_gdf = data_gdf[data_gdf.index.year == config["year"]]
         else:
-            return None
+            # Return empty TrajectoryCollection instead of None
+            logging.warning(f'No data found for year {config["year"]}')
+            result_gdf = data_gdf[data_gdf.index.year == config["year"]]  # This will be empty
 
         # Return filtered data as TrajectoryCollection
         result = TrajectoryCollection(
-            result,
+            result_gdf,
             traj_id_col=data.get_traj_id_col(),
             t=data.to_point_gdf().index.name,
             crs=data.get_crs()

@@ -117,8 +117,11 @@ class MyTestCase(unittest.TestCase):
         # execute
         actual = self.sut.execute(data=input, config=config)
 
-        # verify
-        self.assertIsNone(actual)
+        # verify - should return an empty TrajectoryCollection, not None
+        self.assertIsNotNone(actual)
+        self.assertIsInstance(actual, mpd.TrajectoryCollection)
+        # Verify the collection is empty
+        self.assertEqual(len(actual.to_point_gdf()), 0)
 
     """
     # Use this test if the App should return the input data
