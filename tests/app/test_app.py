@@ -120,6 +120,5 @@ class MyTestCase(unittest.TestCase):
         # verify - should return an empty TrajectoryCollection, not None
         self.assertIsNotNone(actual)
         self.assertIsInstance(actual, mpd.TrajectoryCollection)
-        # Verify the collection is empty
-        self.assertEqual(len(actual.to_point_gdf()), 0)
-
+        # Verify the collection is empty by checking the trajectories list
+        self.assertEqual(len(actual.trajectories), 0)
